@@ -81,7 +81,7 @@ func (s *testingServer) Test(ctx context.Context, req *internal.TestPayload) (*i
 // registration.
 func registerTestingService(srv *Server, svc testingService) {
 	srv.Register(serviceName, map[string]Method{
-		"Test": func(ctx context.Context, unmarshal func(interface{}) error) (interface{}, error) {
+		"Test": func(ctx context.Context, unmarshal func(any) error) (any, error) {
 			var req internal.TestPayload
 			if err := unmarshal(&req); err != nil {
 				return nil, err
@@ -219,7 +219,7 @@ func TestServerShutdown(t *testing.T) {
 
 	// register a service that takes until we tell it to stop
 	server.Register(serviceName, map[string]Method{
-		"Test": func(_ context.Context, unmarshal func(interface{}) error) (interface{}, error) {
+		"Test": func(_ context.Context, unmarshal func(any) error) (any, error) {
 			var req internal.TestPayload
 			if err := unmarshal(&req); err != nil {
 				return nil, err
@@ -236,7 +236,7 @@ func TestServerShutdown(t *testing.T) {
 	}()
 
 	// send a series of requests that will get blocked
-	for i := 0; i < ncalls; i++ {
+	for i := range ncalls {
 		handlersStarted.Add(1)
 		go func(i int) {
 			tp := internal.TestPayload{Foo: "half" + fmt.Sprint(i)}
@@ -255,7 +255,7 @@ func TestServerShutdown(t *testing.T) {
 	close(proceed)
 	<-shutdownFinished
 
-	for i := 0; i < ncalls; i++ {
+	for range ncalls {
 		if err := <-callErrs; err != nil && err != ErrClosed {
 			t.Fatal(err)
 		}

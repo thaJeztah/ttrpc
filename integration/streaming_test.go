@@ -174,16 +174,14 @@ func (tss *testStreamingService) EchoNullStream(_ context.Context, es streaming.
 			return fmt.Errorf("unexpected message %q, expected %q", e.Msg, msg)
 		}
 
-		for i := 0; i < 10; i++ {
-			wg.Add(1)
-			go func() {
-				defer wg.Done()
+		for range 10 {
+			wg.Go(func() {
 				if err := es.SendMsg(empty); err != nil {
 					errOnce.Do(func() {
 						sendErr = err
 					})
 				}
-			}()
+			})
 		}
 	}
 	wg.Wait()
@@ -200,8 +198,7 @@ func (tss *testStreamingService) EmptyPayloadStream(_ context.Context, _ *emptyp
 }
 
 func TestStreamingService(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 
 	client, cleanup := runService(ctx, t, &testStreamingService{t})
 	defer cleanup()
@@ -328,7 +325,7 @@ func echoNullTest(ctx context.Context, client streaming.TTRPCStreamingClient) fu
 		if err != nil {
 			t.Fatal(err)
 		}
-		for i := 0; i < 100; i++ {
+		for i := range 100 {
 			echoi := &streaming.EchoPayload{
 				Seq: uint32(i),
 				Msg: "non-empty empty",
@@ -367,7 +364,7 @@ func echoNullStreamTest(ctx context.Context, client streaming.TTRPCStreamingClie
 
 		}()
 
-		for i := 0; i < 100; i++ {
+		for i := range 100 {
 			echoi := &streaming.EchoPayload{
 				Seq: uint32(i),
 				Msg: "non-empty empty",

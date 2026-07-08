@@ -49,7 +49,7 @@ func handle() error {
 	}
 }
 
-func serverIntercept(ctx context.Context, um ttrpc.Unmarshaler, i *ttrpc.UnaryServerInfo, m ttrpc.Method) (interface{}, error) {
+func serverIntercept(ctx context.Context, um ttrpc.Unmarshaler, i *ttrpc.UnaryServerInfo, m ttrpc.Method) (any, error) {
 	log.Println("server interceptor")
 	dumpMetadata(ctx)
 	return m(ctx, um)
