@@ -10,4 +10,4 @@ require (
 	google.golang.org/protobuf v1.36.11
 )
 
-require github.com/sirupsen/logrus v1.9.3 // indirect
+require github.com/sirupsen/logrus v1.9.4 // indirect
