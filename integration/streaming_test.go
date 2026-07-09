@@ -30,7 +30,6 @@ import (
 
 	"github.com/containerd/ttrpc"
 	"github.com/containerd/ttrpc/integration/streaming"
-	"github.com/golang/protobuf/ptypes/empty"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
@@ -132,7 +131,7 @@ func (tss *testStreamingService) DivideStream(_ context.Context, sum *streaming.
 	}
 	return nil
 }
-func (tss *testStreamingService) EchoNull(_ context.Context, es streaming.TTRPCStreaming_EchoNullServer) (*empty.Empty, error) {
+func (tss *testStreamingService) EchoNull(_ context.Context, es streaming.TTRPCStreaming_EchoNullServer) (*emptypb.Empty, error) {
 	msg := "non-empty empty"
 	for seq := uint32(0); ; seq++ {
 		var e streaming.EchoPayload
@@ -150,12 +149,12 @@ func (tss *testStreamingService) EchoNull(_ context.Context, es streaming.TTRPCS
 		}
 	}
 
-	return &empty.Empty{}, nil
+	return &emptypb.Empty{}, nil
 }
 
 func (tss *testStreamingService) EchoNullStream(_ context.Context, es streaming.TTRPCStreaming_EchoNullStreamServer) error {
 	msg := "non-empty empty"
-	empty := &empty.Empty{}
+	empty := &emptypb.Empty{}
 	var wg sync.WaitGroup
 	var sendErr error
 	var errOnce sync.Once
