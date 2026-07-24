@@ -18,12 +18,14 @@ package ttrpc
 
 import (
 	"context"
+	"errors"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/containerd/ttrpc/internal"
-	"github.com/prometheus/procfs"
 )
 
 func TestUnixSocketHandshake(t *testing.T) {
@@ -124,18 +126,24 @@ func TestServerEOF(t *testing.T) {
 }
 
 func socketCount(t *testing.T) int {
-	proc, err := procfs.Self()
-	if err != nil {
-		t.Fatalf("unexpected error while reading procfs: %v", err)
-	}
-	fds, err := proc.FileDescriptorTargets()
+	t.Helper()
+
+	entries, err := os.ReadDir("/proc/self/fd")
 	if err != nil {
 		t.Fatalf("unexpected error while listing open file descriptors: %v", err)
 	}
 
-	sockets := 0
-	for _, fd := range fds {
-		if strings.Contains(fd, "socket") {
+	var sockets int
+	for _, entry := range entries {
+		target, err := os.Readlink(filepath.Join("/proc/self/fd", entry.Name()))
+		if err != nil {
+			// ignore races if FD disappears while iterating.
+			if errors.Is(err, os.ErrNotExist) {
+				continue
+			}
+			t.Fatalf("unexpected error while reading file descriptor %s: %v", entry.Name(), err)
+		}
+		if strings.Contains(target, "socket") {
 			sockets++
 		}
 	}
