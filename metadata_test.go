@@ -150,13 +150,11 @@ func TestMetadataCloneConcurrent(t *testing.T) {
 	metadata.Set("foo", "bar")
 
 	var wg sync.WaitGroup
-	for i := 0; i < 20; i++ {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
+	for range 20 {
+		wg.Go(func() {
 			m2 := metadata.Clone()
 			m2.Set("foo", "baz")
-		}()
+		})
 	}
 	wg.Wait()
 	// Concurrent modification should clone the metadata first to avoid panic
@@ -180,7 +178,7 @@ func BenchmarkMetadataClone(b *testing.B) {
 	for _, sz := range []int{5, 10, 20, 50} {
 		b.Run(fmt.Sprintf("size=%d", sz), func(b *testing.B) {
 			metadata := make(MD)
-			for i := 0; i < sz; i++ {
+			for i := range sz {
 				metadata.Set("foo"+fmt.Sprint(i), "bar"+fmt.Sprint(i))
 			}
 
@@ -195,7 +193,7 @@ func BenchmarkSimpleMetadataClone(b *testing.B) {
 	for _, sz := range []int{5, 10, 20, 50} {
 		b.Run(fmt.Sprintf("size=%d", sz), func(b *testing.B) {
 			metadata := make(MD)
-			for i := 0; i < sz; i++ {
+			for i := range sz {
 				metadata.Set("foo"+fmt.Sprint(i), "bar"+fmt.Sprint(i))
 			}
 

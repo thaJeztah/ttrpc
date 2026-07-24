@@ -46,7 +46,7 @@ func TestStreamNotConsumedDoesNotBlockConnection(t *testing.T) {
 
 	desc := &ServiceDesc{
 		Methods: map[string]Method{
-			"Echo": func(_ context.Context, unmarshal func(interface{}) error) (interface{}, error) {
+			"Echo": func(_ context.Context, unmarshal func(any) error) (any, error) {
 				var req internal.EchoPayload
 				if err := unmarshal(&req); err != nil {
 					return nil, err
@@ -57,7 +57,7 @@ func TestStreamNotConsumedDoesNotBlockConnection(t *testing.T) {
 		},
 		Streams: map[string]Stream{
 			"EchoStream": {
-				Handler: func(_ context.Context, ss StreamServer) (interface{}, error) {
+				Handler: func(_ context.Context, ss StreamServer) (any, error) {
 					for {
 						var req internal.EchoPayload
 						if err := ss.RecvMsg(&req); err != nil {
@@ -92,7 +92,7 @@ func TestStreamNotConsumedDoesNotBlockConnection(t *testing.T) {
 
 	// Send enough messages to guarantee the server has echoed back more
 	// than the client-side buffer (capacity 1) can hold.
-	for i := 0; i < 10; i++ {
+	for i := range 10 {
 		if err := abandonedStream.SendMsg(&internal.EchoPayload{
 			Seq: int64(i),
 			Msg: "abandoned",
@@ -161,7 +161,7 @@ func TestStreamFullOnServer(t *testing.T) {
 
 	desc := &ServiceDesc{
 		Methods: map[string]Method{
-			"Echo": func(_ context.Context, unmarshal func(interface{}) error) (interface{}, error) {
+			"Echo": func(_ context.Context, unmarshal func(any) error) (any, error) {
 				var req internal.EchoPayload
 				if err := unmarshal(&req); err != nil {
 					return nil, err
@@ -172,7 +172,7 @@ func TestStreamFullOnServer(t *testing.T) {
 		},
 		Streams: map[string]Stream{
 			"SlowConsumer": {
-				Handler: func(ctx context.Context, _ StreamServer) (interface{}, error) {
+				Handler: func(ctx context.Context, _ StreamServer) (any, error) {
 					// Signal that the handler is running, then stop consuming.
 					close(handlerReady)
 					// Block until the context is cancelled (server shutdown).
@@ -208,7 +208,7 @@ func TestStreamFullOnServer(t *testing.T) {
 	sendDone := make(chan struct{})
 	go func() {
 		defer close(sendDone)
-		for i := 0; i < 20; i++ {
+		for i := range 20 {
 			if err := slowStream.SendMsg(&internal.EchoPayload{
 				Seq: int64(i),
 				Msg: "filling buffer",
